@@ -78,7 +78,7 @@ fn display_dict(
             serde_bencode::value::Value::List(v) => {
                 display_list(f, v)?;
                 continue;
-            },
+            }
             serde_bencode::value::Value::Dict(v) => {
                 display_dict(f, v)?;
                 continue;
