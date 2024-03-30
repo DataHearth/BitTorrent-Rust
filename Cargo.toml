@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "brs", 
+  "cli",
+  "gui"
+]
+resolver = "2"
+

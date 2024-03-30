@@ -1,0 +1,9 @@
+[package]
+name = "brs-gui"
+version = "0.1.0"
+edition = "2021"
+description = "BRS desktop GUI and WebUI"
+authors = [ "Antoine Langlois <dev@antoine-langlois.net>" ]
+
+[dependencies]
+bendy = "0.3"

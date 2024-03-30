@@ -1,0 +1,10 @@
+[package]
+name = "brs-cli"
+version = "0.1.0"
+edition = "2021"
+description = "BRS desktop GUI and WebUI"
+authors = [ "Antoine Langlois <dev@antoine-langlois.net>" ]
+
+[dependencies]
+brs = { path = "../brs" }
+clap = { version = "4.5", features = ["derive"] }
