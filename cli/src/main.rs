@@ -6,7 +6,7 @@ use std::io;
 use clap::{Command, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use torrent::{create, metadata, raw};
-use tracker::check;
+use tracker::peers;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -44,6 +44,7 @@ enum TorrentCmds {
         #[arg(long)]
         v2: bool,
     },
+    /// Print data and types found inside a ".torrent" file
     Raw {
         /// Path to an existing torrent file
         #[arg(value_hint = ValueHint::FilePath)]
@@ -59,7 +60,7 @@ enum TorrentCmds {
 
 #[derive(Subcommand)]
 enum TrackerCmds {
-    Check {
+    Peers {
         #[arg(value_hint = ValueHint::FilePath)]
         path: String,
     },
@@ -85,7 +86,7 @@ async fn main() {
                 TorrentCmds::Raw { path } => raw(path),
             },
             Cmds::Tracker { commands } => match commands {
-                TrackerCmds::Check { path } => check(path).await,
+                TrackerCmds::Peers { path } => peers(path).await,
             },
         }
     }

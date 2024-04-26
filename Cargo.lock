@@ -163,6 +163,7 @@ dependencies = [
  "brs",
  "clap",
  "clap_complete",
+ "hex",
  "rand",
  "thiserror",
  "tokio",

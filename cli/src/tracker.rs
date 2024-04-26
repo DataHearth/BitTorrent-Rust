@@ -2,12 +2,12 @@ use std::fs;
 
 use brs::{
     torrent::v1,
-    tracker::{Tracker, TrackerRequest},
+    tracker::{announce::AnnounceReq, Tracker},
 };
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 
-pub(crate) async fn check(path: String) {
+pub(crate) async fn peers(path: String) {
     let bytes = fs::read(path).unwrap();
     let torrent = v1::Torrent::parse_bytes(&bytes);
     if let Err(e) = &torrent {
@@ -26,8 +26,8 @@ pub(crate) async fn check(path: String) {
     };
     let mut tracker = Tracker::new(torrent.announce.clone());
     let rsp = tracker
-        .announce(TrackerRequest {
-            peer_id: format!("-BRS010-{peer_id}"),
+        .announce(AnnounceReq {
+            peer_id: format!("-BR010-{peer_id}"),
             downloaded: "0".to_string(),
             left: torrent.calc_download_lenght().to_string(),
             uploaded: "0".to_string(),
@@ -35,9 +35,21 @@ pub(crate) async fn check(path: String) {
             compact: true,
             ..Default::default()
         })
-        .await;
+        .await
+        .unwrap();
+    let rsp = tracker.convert_bytes(&rsp).await;
 
-    if let Err(e) = rsp {
-        eprintln!("{e}")
+    match rsp {
+        Ok(v) => {
+            for p in v.peers {
+                println!("- ip: {}", p.ip);
+                println!("  port: {}", p.port);
+                if let Some(id) = p.id {
+                    println!("  id: {}", id);
+                }
+                println!("");
+            }
+        }
+        Err(e) => eprintln!("Failed to get peers: {e}"),
     }
 }

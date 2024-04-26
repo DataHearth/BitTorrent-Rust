@@ -1,6 +1,7 @@
 mod display;
-mod ext_parsing;
 mod main;
+mod parsing_modules;
+mod tcp;
 
 use std::collections::HashMap;
 
@@ -8,12 +9,21 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, BoolFromInt, TimestampSeconds};
 
+use crate::extension_parsing;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Torrent<'a> {
     /// Announcer URL
     pub announce: String,
     /// Torrent information
     pub info: TorrentInfo<'a>,
+    /// List of additional trackers
+    #[serde(
+        default,
+        rename = "announce-list",
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub announce_list: Vec<String>,
     /// Non official fields
     #[serde(flatten, borrow)]
     pub additional_fields: RootAdditionalFields<'a>,
@@ -32,17 +42,17 @@ pub struct TorrentInfo<'a> {
     pub piece_length: i64,
     /// SHA1 hashes of each pieces concatenated. Each hash is 20 bytes long.
     /// REQUIRED
-    #[serde(with = "ext_parsing::pieces")]
+    #[serde(with = "parsing_modules::pieces")]
     pub pieces: Vec<String>,
     /// In case of a single file, represents the file size.
     /// REQUIRED - If `TorrentInfo.files` is empty
-    #[serde(default, skip_serializing_if = "ext_parsing::skip_empty::i64")]
+    #[serde(default, skip_serializing_if = "extension_parsing::skip_empty::i64")]
     pub length: i64,
     /// In case of multiple files/directories, represents all files/directories available
     /// REQUIRED - If `TorrentInfo.length` is empty
     #[serde(
         default,
-        with = "ext_parsing::files",
+        with = "parsing_modules::files",
         skip_serializing_if = "Vec::is_empty"
     )]
     pub files: Vec<TorrentFile>,
@@ -71,7 +81,7 @@ pub struct RootAdditionalFields<'a> {
     #[serde(
         default,
         rename = "created by",
-        skip_serializing_if = "ext_parsing::skip_empty::string"
+        skip_serializing_if = "String::is_empty"
     )]
     pub created_by: String,
     /// Torrent creation date
@@ -79,11 +89,11 @@ pub struct RootAdditionalFields<'a> {
     #[serde(
         default,
         rename = "creation date",
-        skip_serializing_if = "ext_parsing::skip_empty::date"
+        skip_serializing_if = "extension_parsing::skip_empty::date"
     )]
     pub creation_date: DateTime<Utc>,
     /// Comment about the torrent
-    #[serde(default, skip_serializing_if = "ext_parsing::skip_empty::string")]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub comment: String,
     /// List of resources available
     #[serde(default, rename = "url-list", skip_serializing_if = "Vec::is_empty")]
@@ -103,7 +113,7 @@ pub struct RootAdditionalFields<'a> {
 pub struct TorrentInfoAdditionalFields<'a> {
     /// Is the torrent private
     #[serde_as(as = "BoolFromInt")]
-    #[serde(default, skip_serializing_if = "ext_parsing::skip_empty::bool")]
+    #[serde(default, skip_serializing_if = "extension_parsing::skip_empty::bool")]
     pub private: bool,
     /// Extra fields not explicitly covered by the struct
     #[serde(flatten, borrow)]

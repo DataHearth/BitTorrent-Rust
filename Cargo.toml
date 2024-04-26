@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "brs", 
+  "lib", 
   "cli",
   "gui"
 ]

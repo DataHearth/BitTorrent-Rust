@@ -10,6 +10,9 @@ pub enum TorrentError {
     EncodeInfo(bendy::serde::Error),
     #[error("Failed to read torrent file: {0}")]
     ReadTorrent(#[from] io::Error),
-    #[error("Failed to convert bytes array to UTF-8 string")]
-    Utf8Conversion(#[from] std::string::FromUtf8Error),
+}
+
+#[derive(Error, Debug)]
+pub enum TcpError {
+
 }
